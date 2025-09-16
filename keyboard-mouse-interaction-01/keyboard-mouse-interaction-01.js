@@ -4,7 +4,9 @@ const vertexShaderSource = `
   uniform vec2 u_translation;
 
   void main() {
-    gl_Position = vec4(a_position[0]+u_translation[0], a_position[1]+u_translation[1], 0, 1);
+    vec2 position;
+    position = a_position + u_translation;
+    gl_Position = vec4(position, 0, 1);
   }
 `;
 
