@@ -98,6 +98,7 @@ function main(){
     bodyElement.addEventListener("keydown",keyDown,false);
   
     function keyDown(event){
+      event.preventDefault();
       switch(event.key){
         case 'c':
           colorVector = [Math.random(),Math.random(),Math.random()];

@@ -107,6 +107,7 @@ function main(){
     bodyElement.addEventListener("keydown",keyDown,false);
   
     function keyDown(event){
+      event.preventDefault();
       switch(event.key){
         case 'ArrowUp':
           translationVector[1] += 0.1;
