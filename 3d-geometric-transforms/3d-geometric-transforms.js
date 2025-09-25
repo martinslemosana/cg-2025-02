@@ -133,7 +133,7 @@ function main() {
     const colorLocation = gl.getAttribLocation(program, 'a_color');
 
     const VertexBuffer = gl.createBuffer();
-    let cubeVertices = setCubeVertices(1.0);
+    let cubeVertices = setCubeVertices(0.25);
     console.log(cubeVertices.length);
 
     const ColorBuffer = gl.createBuffer();
@@ -185,6 +185,7 @@ function main() {
       gl.bufferData(gl.ARRAY_BUFFER, cubeColors, gl.STATIC_DRAW);
       gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
       matrix = m4.identity();
+      matrix = m4.translate(matrix,0.25,0.25,0.25);
       matrix = m4.xRotate(matrix,degToRad(x_angle));
       matrix = m4.yRotate(matrix,degToRad(y_angle));
       gl.uniformMatrix4fv(matrixUniformLocation,false,matrix);
