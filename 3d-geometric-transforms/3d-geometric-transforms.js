@@ -105,7 +105,7 @@ function setCubeVertices(side){
 function setCubeColors(){
   let colors = [];
   let color = [];
-  for(let i=0;i<8;i++){
+  for(let i=0;i<6;i++){
     color = [Math.random(),Math.random(),Math.random()];
     for(let j=0;j<6;j++)
       colors.push(...color);
