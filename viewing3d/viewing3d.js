@@ -181,7 +181,7 @@ function main() {
 
     let modelViewMatrix = m4.identity();
 
-    let P0 = [1.0,1.0,1.0];
+    let P0 = [2.0,2.0,2.0];
     let Pref = [0.0,0.0,0.0];
     let V = [0.0,1.0,0.0];
     let viewingMatrix = m4.setViewingMatrix(P0,Pref,V);
@@ -190,23 +190,34 @@ function main() {
     let xw_max = 1.0;
     let yw_min = -1.0;
     let yw_max = 1.0;
-    let z_near = 0.0;
-    let z_far = -3.0;
-    let projectionMatrix = m4.setProjectionMatrix(xw_min,xw_max,yw_min,yw_max,z_near,z_far);
+    let z_near = -1.0;
+    let z_far = -8.0;
+    let projectionMatrix = m4.setOrthographicProjectionMatrix(xw_min,xw_max,yw_min,yw_max,z_near,z_far);
+
+    let theta = 0.0;
+    let tx = 0.0;
+    let ty = 0.0;
+    let tz = 0.0;
+    let tx_offset = 0.05;
+
+    cubeColors = setCubeColors();
+    cubeVertices = setCubeVertices(0.5);
 
     function drawCube(){
       gl.enableVertexAttribArray(positionLocation);
       gl.bindBuffer(gl.ARRAY_BUFFER, VertexBuffer);
-      cubeVertices = setCubeVertices(0.25);
       gl.bufferData(gl.ARRAY_BUFFER, cubeVertices, gl.STATIC_DRAW);
       gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
   
       gl.enableVertexAttribArray(colorLocation);
       gl.bindBuffer(gl.ARRAY_BUFFER, ColorBuffer);
-      cubeColors = setCubeColors();
       gl.bufferData(gl.ARRAY_BUFFER, cubeColors, gl.STATIC_DRAW);
       gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
       
+      modelViewMatrix = m4.identity();
+      modelViewMatrix = m4.yRotate(modelViewMatrix,degToRad(theta));
+      modelViewMatrix = m4.translate(modelViewMatrix,tx,ty,tz);
+
       gl.uniformMatrix4fv(modelViewMatrixUniformLocation,false,modelViewMatrix);
       gl.uniformMatrix4fv(viewingMatrixUniformLocation,false,viewingMatrix);
       gl.uniformMatrix4fv(projectionMatrixUniformLocation,false,projectionMatrix);
@@ -223,8 +234,9 @@ function main() {
       gl.bindBuffer(gl.ARRAY_BUFFER, ColorBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, coordinateAxesColors, gl.STATIC_DRAW);
       gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
-      let matrix = m4.identity();
       
+      modelViewMatrix = m4.identity();
+
       gl.uniformMatrix4fv(modelViewMatrixUniformLocation,false,modelViewMatrix);
       gl.uniformMatrix4fv(viewingMatrixUniformLocation,false,viewingMatrix);
       gl.uniformMatrix4fv(projectionMatrixUniformLocation,false,projectionMatrix);
@@ -234,8 +246,29 @@ function main() {
 
     function drawScene(){
       gl.clear(gl.COLOR_BUFFER_BIT);
+
+      theta += 5;
+      if(tx>2.0 || tx<-2.0)
+        tx_offset = -tx_offset;
+      tx += tx_offset;
+
+      gl.viewport(0, 0, gl.canvas.width/2, gl.canvas.height);
+      P0 = [0.0,0.0,2.0];
+      Pref = [0.0,0.0,0.0];
+      V = [0.0,1.0,0.0];
+      viewingMatrix = m4.setViewingMatrix(P0,Pref,V);
       drawCube();
       drawCoordinateAxes();
+
+      gl.viewport(gl.canvas.width/2, 0, gl.canvas.width/2, gl.canvas.height);
+      P0 = [2.0,2.0,2.0];
+      Pref = [0.0,0.0,0.0];
+      V = [0.0,1.0,0.0];
+      viewingMatrix = m4.setViewingMatrix(P0,Pref,V);
+      drawCube();
+      drawCoordinateAxes();
+
+      requestAnimationFrame(drawScene);
     }
 
     drawScene();
