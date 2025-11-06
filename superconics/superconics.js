@@ -53,7 +53,7 @@ const fragmentShaderSource = `
         specular = pow(dot(normal, halfVector), 250.0);
       }
 
-      gl_FragColor.rgb = 0.4*ambientReflection + 0.6*light*diffuseReflection;
+      gl_FragColor.rgb = 0.5*ambientReflection + 0.5*light*diffuseReflection;
       gl_FragColor.rgb += specular*specularReflection;
     }
 `;
@@ -205,7 +205,6 @@ function main() {
     gl.useProgram(program);
 
     const positionLocation = gl.getAttribLocation(program, 'a_position');
-    const colorUniformLocation = gl.getUniformLocation(program, 'u_color');
     const normalLocation = gl.getAttribLocation(program, 'a_normal');
 
     const VertexBuffer = gl.createBuffer();
@@ -214,6 +213,8 @@ function main() {
     const NormalBuffer = gl.createBuffer();
     let conicNormals = [];
     
+    const colorUniformLocation = gl.getUniformLocation(program, 'u_color');
+
     const modelViewMatrixUniformLocation = gl.getUniformLocation(program,'u_modelViewMatrix');
     const viewingMatrixUniformLocation = gl.getUniformLocation(program,'u_viewingMatrix');
     const projectionMatrixUniformLocation = gl.getUniformLocation(program,'u_projectionMatrix');
@@ -223,17 +224,17 @@ function main() {
 
     gl.enable(gl.DEPTH_TEST);
     gl.clearColor(0.0, 0.0, 0.0, 0.0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     let modelViewMatrix = m4.identity();
 
-    let P0 = [2.0,2.0,2.0];
+    let P0 = [1.0,1.0,1.0];
     let Pref = [0.0,0.0,0.0];
     let V = [0.0,1.0,0.0];
     let viewingMatrix = m4.setViewingMatrix(P0,Pref,V);
     
     gl.uniform3fv(viewPositionUniformLocation, new Float32Array(P0));
-    gl.uniform3fv(lightPositionUniformLocation, new Float32Array([0.0,0.0,1.0]));
+    gl.uniform3fv(lightPositionUniformLocation, new Float32Array([1.0,1.0,1.0]));
 
     let xw_min = -1.0;
     let xw_max = 1.0;
@@ -246,7 +247,11 @@ function main() {
 
     const bodyElement = document.querySelector("body");
     bodyElement.addEventListener("keydown",keyDown,false);
-  
+
+    let rotateX = 0;
+    let rotateY = 0;
+    let rotateZ = 0;
+
     function keyDown(event){
       event.preventDefault();
       switch(event.key){
@@ -256,26 +261,65 @@ function main() {
         case '2':
           projectionMatrix = m4.setPerspectiveProjectionMatrix(xw_min,xw_max,yw_min,yw_max,z_near,z_far);
           break;
+        case 'x':
+          rotateX = 1;
+          rotateY = 0;
+          rotateZ = 0;
+          break;
+        case 'y':
+          rotateX = 0;
+          rotateY = 1;
+          rotateZ = 0;
+          break;
+        case 'z':
+          rotateX = 0;
+          rotateY = 0;
+          rotateZ = 1;
+          break;
       }
     }
 
-    let theta = 0.0;
-    let tx = 0.0;
-    let ty = 0.0;
-    let tz = 0.0;
-    let tx_offset = 0.02;
+    const n_slices_stacks = document.querySelector("#value_slices_stacks");
+    const input_slices_stacks = document.querySelector("#n_slices_stacks");
+    n_slices_stacks.textContent = input_slices_stacks.value;
 
-    let radius = 0.25;
-    let slices = 10;
-    let stacks = 10;
-    let s1 = 0.5;
-    let s2 = 0.5;
+    const s1 = document.querySelector("#value_s1");
+    const input_s1 = document.querySelector("#n_s1");
+    s1.textContent = input_s1.value;
+    let radius = 0.5;
+
+    const s2 = document.querySelector("#value_s2");
+    const input_s2 = document.querySelector("#n_s2");
+    s2.textContent = input_s2.value;
+
+    input_slices_stacks.addEventListener("input", (event) => {
+        n_slices_stacks.textContent = event.target.value;
+
+        conicVertices = setSuperConicSphereVertices(radius, n_slices_stacks.textContent, n_slices_stacks.textContent, s1.textContent, s2.textContent);
+        conicNormals = setSuperConicSphereNormals_flat(radius, n_slices_stacks.textContent, n_slices_stacks.textContent, s1.textContent, s2.textContent);
+    });
+
+    input_s1.addEventListener("input", (event) => {
+        s1.textContent = event.target.value;
+
+        conicVertices = setSuperConicSphereVertices(radius, n_slices_stacks.textContent, n_slices_stacks.textContent, s1.textContent, s2.textContent);
+        conicNormals = setSuperConicSphereNormals_flat(radius, n_slices_stacks.textContent, n_slices_stacks.textContent, s1.textContent, s2.textContent);
+    });
+
+    input_s2.addEventListener("input", (event) => {
+        s2.textContent = event.target.value;
+
+        conicVertices = setSuperConicSphereVertices(radius, n_slices_stacks.textContent, n_slices_stacks.textContent, s1.textContent, s2.textContent);
+        conicNormals = setSuperConicSphereNormals_flat(radius, n_slices_stacks.textContent, n_slices_stacks.textContent, s1.textContent, s2.textContent);
+    });
+
+    let theta_x = 0.0;
+    let theta_y = 0.0;
+    let theta_z = 0.0;
 
     color = [1.0,0.0,0.0];
-    conicVertices = setSuperConicSphereVertices(radius, slices, stacks, s1, s2);
-    conicNormals = setSuperConicSphereNormals_flat(radius, slices, stacks, s1, s2);
-
-    console.log(conicVertices.length,conicVertices.length / 3,conicNormals.length / 3,conicNormals.length);
+    conicVertices = setSuperConicSphereVertices(radius, n_slices_stacks.textContent, n_slices_stacks.textContent, s1.textContent, s2.textContent);
+    conicNormals = setSuperConicSphereNormals_flat(radius, n_slices_stacks.textContent, n_slices_stacks.textContent, s1.textContent, s2.textContent);
 
     function drawConic(){
       gl.enableVertexAttribArray(positionLocation);
@@ -289,8 +333,9 @@ function main() {
       gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
       
       modelViewMatrix = m4.identity();
-      modelViewMatrix = m4.yRotate(modelViewMatrix,degToRad(theta));
-      modelViewMatrix = m4.translate(modelViewMatrix,tx,ty,tz);
+      modelViewMatrix = m4.xRotate(modelViewMatrix,degToRad(theta_x));
+      modelViewMatrix = m4.yRotate(modelViewMatrix,degToRad(theta_y));
+      modelViewMatrix = m4.zRotate(modelViewMatrix,degToRad(theta_z));
 
       gl.uniformMatrix4fv(modelViewMatrixUniformLocation,false,modelViewMatrix);
       gl.uniformMatrix4fv(viewingMatrixUniformLocation,false,viewingMatrix);
@@ -298,7 +343,7 @@ function main() {
 
       gl.uniform3fv(colorUniformLocation, new Float32Array(color));
       gl.uniform3fv(viewPositionUniformLocation, new Float32Array(P0));
-      gl.uniform3fv(lightPositionUniformLocation, new Float32Array([0.0,0.0,1.0]));
+      gl.uniform3fv(lightPositionUniformLocation, new Float32Array([1.0,1.0,1.0]));
 
       gl.drawArrays(gl.TRIANGLES, 0, conicVertices.length / 3);
     }
@@ -306,20 +351,15 @@ function main() {
     function drawScene(){
       gl.clear(gl.COLOR_BUFFER_BIT);
 
-      theta += 2;
-      if(tx>2.0 || tx<-2.0)
-        tx_offset = -tx_offset;
-      tx += tx_offset;
+      if (rotateX)
+        theta_x += 2;
+      if (rotateY)
+        theta_y += 2;
+      if (rotateZ)
+        theta_z += 2;
 
-      gl.viewport(0, 0, gl.canvas.width/2, gl.canvas.height);
+      gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
       P0 = [0.0,0.0,2.0];
-      Pref = [0.0,0.0,0.0];
-      V = [0.0,1.0,0.0];
-      viewingMatrix = m4.setViewingMatrix(P0,Pref,V);
-      drawConic();
-
-      gl.viewport(gl.canvas.width/2, 0, gl.canvas.width/2, gl.canvas.height);
-      P0 = [2.0,1.0,2.0];
       Pref = [0.0,0.0,0.0];
       V = [0.0,1.0,0.0];
       viewingMatrix = m4.setViewingMatrix(P0,Pref,V);
