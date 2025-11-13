@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Importing an .obj file</title>
+    <style>
+        body {
+            margin: 20px;
+            padding: 0;
+            background-color: white;
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        table {
+            border-collapse: collapse;
+            margin: 0 auto;
+            border: 2px solid #ddd;
+        }
+        td {
+            border: 1px solid #ccc;
+            padding: 15px;
+            text-align: center;
+            vertical-align: middle;
+            background-color: #f9f9f9;
+        }
+        h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #555;
+            font-size: 14px;
+        }
+        canvas {
+            border: 1px solid #999;
+            background-color: black;
+        }
+    </style>
+</head>
+<body>
+    <h1>Importing an .obj file</h1>
+
+    <table>
+        <tr>
+            <td>
+                <canvas id="glCanvas" width="500" height="500"></canvas>
+            </td>
+        </tr>
+        <tr>
+          <td>
+            <p>Press 1 for orthographic projection</p>
+            <p>Press 2 for perspective projection</p>
+            <p>Press 'x' for X-Rotation</p>
+            <p>Press 'y' for Y-Rotation</p>
+            <p>Press 'z' for Z-Rotation</p>
+          </td>
+        </tr>
+    </table>
+
+    <!-- Load all JavaScript files -->
+    <script src="m4.js"></script>
+    <script src="importingObj.js"></script>
+    <script id="cube-model" type="text/plain">
+        v -1.0 -1.0  1.0
+        v  1.0 -1.0  1.0
+        v  1.0  1.0  1.0
+        v -1.0  1.0  1.0
+        v -1.0 -1.0 -1.0
+        v  1.0 -1.0 -1.0
+        v  1.0  1.0 -1.0
+        v -1.0  1.0 -1.0
+
+        # Normals
+        vn  0.0  0.0  1.0
+        vn  0.0  0.0 -1.0
+        vn  0.0  1.0  0.0
+        vn  0.0 -1.0  0.0
+        vn  1.0  0.0  0.0
+        vn -1.0  0.0  0.0
+
+        # Faces (each line = one triangle)
+        f 1//1 2//1 3//1
+        f 1//1 3//1 4//1
+
+        f 5//2 8//2 7//2
+        f 5//2 7//2 6//2
+
+        f 4//3 3//3 7//3
+        f 4//3 7//3 8//3
+
+        f 1//4 5//4 6//4
+        f 1//4 6//4 2//4
+
+        f 2//5 6//5 7//5
+        f 2//5 7//5 3//5
+
+        f 1//6 4//6 8//6
+        f 1//6 8//6 5//6
+    </script>
+    <script id="pyramid-model" type="text/plain">
+        # Vertices
+        v  0.0  1.0  0.0
+        v -1.0 -1.0  1.0
+        v  1.0 -1.0  1.0
+        v  1.0 -1.0 -1.0
+        v -1.0 -1.0 -1.0
+
+        # Normals (approx)
+        vn  0.0  0.4472  0.8944
+        vn  0.8944  0.4472  0.0
+        vn  0.0  0.4472 -0.8944
+        vn -0.8944  0.4472  0.0
+        vn  0.0 -1.0  0.0
+
+        # Faces
+        f 1//1 2//1 3//1
+        f 1//2 3//2 4//2
+        f 1//3 4//3 5//3
+        f 1//4 5//4 2//4
+        f 2//5 3//5 4//5
+        f 2//5 4//5 5//5
+    </script>
+    <script id="diamond-model" type="text/plain">
+        # Vertices
+        v  0.0  1.5  0.0
+        v -1.0  0.0  1.0
+        v  1.0  0.0  1.0
+        v  1.0  0.0 -1.0
+        v -1.0  0.0 -1.0
+        v  0.0 -1.5  0.0
+        
+        # Normals (approximate)
+        vn  0.0  0.7071  0.7071
+        vn  0.7071  0.7071  0.0
+        vn  0.0  0.7071 -0.7071
+        vn -0.7071  0.7071  0.0
+        vn  0.0 -0.7071  0.7071
+        vn  0.7071 -0.7071  0.0
+        vn  0.0 -0.7071 -0.7071
+        vn -0.7071 -0.7071  0.0
+        
+        # Faces (top)
+        f 1//1 2//1 3//1
+        f 1//2 3//2 4//2
+        f 1//3 4//3 5//3
+        f 1//4 5//4 2//4
+        f 6//5 3//5 2//5
+        f 6//6 4//6 3//6
+        f 6//7 5//7 4//7
+        f 6//8 2//8 5//8
+    </script>
+    <script id="low-poly-diamond-model" type="text/plain">
+        # Vertices
+        v  0.0   1.0   0.0
+        v  0.7   0.0   0.7
+        v  0.7   0.0  -0.7
+        v -0.7   0.0  -0.7
+        v -0.7   0.0   0.7
+        v  0.0  -1.0   0.0
+        
+        # Normals (approx)
+        vn  0.7071  0.7071  0.0
+        vn  0.0     0.7071  0.7071
+        vn -0.7071  0.7071  0.0
+        vn  0.0     0.7071 -0.7071
+        vn  0.7071 -0.7071  0.0
+        vn  0.0    -0.7071  0.7071
+        vn -0.7071 -0.7071  0.0
+        vn  0.0    -0.7071 -0.7071
+        
+        # Faces
+        f 1//1 2//1 3//1
+        f 1//2 3//2 4//2
+        f 1//3 4//3 5//3
+        f 1//4 5//4 2//4
+        f 6//5 3//5 2//5
+        f 6//6 4//6 3//6
+        f 6//7 5//7 4//7
+        f 6//8 2//8 5//8
+    </script>
+    <script id="twisted-tower-model" type="text/plain">
+        # Vertices
+        v  0.5  1.0  0.0
+        v  0.0  1.0  0.5
+        v -0.5  1.0  0.0
+        v  0.0  1.0 -0.5
+        v  0.5  0.5  0.0
+        v  0.0  0.5  0.5
+        v -0.5  0.5  0.0
+        v  0.0  0.5 -0.5
+        v  0.35  0.0  0.35
+        v -0.35  0.0  0.35
+        v -0.35  0.0 -0.35
+        v  0.35  0.0 -0.35
+        v  0.0 -0.5  0.5
+        v -0.5 -0.5  0.0
+        v  0.0 -0.5 -0.5
+        v  0.5 -0.5  0.0
+        v  0.35 -1.0  0.35
+        v -0.35 -1.0  0.35
+        v -0.35 -1.0 -0.35
+        v  0.35 -1.0 -0.35
+        
+        # Normals
+        vn  0.7071  0.7071  0.0
+        vn  0.0     0.7071  0.7071
+        vn -0.7071  0.7071  0.0
+        vn  0.0     0.7071 -0.7071
+        vn  0.7071 -0.7071  0.0
+        vn  0.0    -0.7071  0.7071
+        vn -0.7071 -0.7071  0.0
+        vn  0.0    -0.7071 -0.7071
+        
+        # Faces
+        f 1//1 2//1 6//1
+        f 1//1 6//1 5//1
+        f 2//2 3//2 7//2
+        f 2//2 7//2 6//2
+        f 3//3 4//3 8//3
+        f 3//3 8//3 7//3
+        f 4//4 1//4 5//4
+        f 4//4 5//4 8//4
+        f 5//1 6//1 9//1
+        f 6//1 10//1 9//1
+        f 6//2 7//2 11//2
+        f 6//2 11//2 10//2
+        f 7//3 8//3 12//3
+        f 7//3 12//3 11//3
+        f 8//4 5//4 9//4
+        f 8//4 9//4 12//4
+        f 9//1 10//1 13//1
+        f 9//1 13//1 16//1
+        f 10//2 11//2 14//2
+        f 10//2 14//2 13//2
+        f 11//3 12//3 15//3
+        f 11//3 15//3 14//3
+        f 12//4 9//4 16//4
+        f 12//4 16//4 15//4
+        f 13//5 14//5 18//5
+        f 13//5 18//5 17//5
+        f 14//6 15//6 19//6
+        f 14//6 19//6 18//6
+        f 15//7 16//7 20//7
+        f 15//7 20//7 19//7
+        f 16//8 13//8 17//8
+        f 16//8 17//8 20//8
+    </script>
+</body>
+</html>
