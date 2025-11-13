@@ -54,7 +54,7 @@ const fragmentShaderSource = `
         specular = pow(dot(normal, halfVector), 250.0);
       }
 
-      gl_FragColor.rgb = 0.6*ambientReflection + 0.4*light*diffuseReflection;
+      gl_FragColor.rgb = 0.5*ambientReflection + 0.5*light*diffuseReflection;
       gl_FragColor.rgb += specular*specularReflection;
     }
 `;
@@ -179,20 +179,24 @@ function main() {
     let modelViewMatrix = [];
     let inverseTransposeModelViewMatrix = [];
 
-    let P0 = [0.0,0.0,4.0];
+    let P0 = [0.0,0.0,40.0];
     let Pref = [0.0,0.0,0.0];
     let V = [0.0,1.0,0.0];
     let viewingMatrix = m4.setViewingMatrix(P0,Pref,V);
-    
-    gl.uniform3fv(viewPositionUniformLocation, new Float32Array(P0));
-    gl.uniform3fv(lightPositionUniformLocation, new Float32Array([2.0,2.0,2.0]));
 
-    let xw_min = -2.0;
-    let xw_max = 2.0;
-    let yw_min = -2.0;
-    let yw_max = 2.0;
+    gl.uniformMatrix4fv(viewingMatrixUniformLocation,false,viewingMatrix);
+    gl.uniform3fv(viewPositionUniformLocation, new Float32Array(P0));
+    gl.uniform3fv(lightPositionUniformLocation, new Float32Array([40.0,40.0,40.0]));
+
+    let color = [1.0,0.0,0.0];
+    gl.uniform3fv(colorUniformLocation, new Float32Array(color));
+
+    let xw_min = -20.0;
+    let xw_max = 20.0;
+    let yw_min = -20.0;
+    let yw_max = 20.0;
     let z_near = -1.0;
-    let z_far = -20.0;
+    let z_far = -100.0;
 
     let projectionMatrix = m4.setOrthographicProjectionMatrix(xw_min,xw_max,yw_min,yw_max,z_near,z_far);
 
@@ -234,22 +238,20 @@ function main() {
     let theta_y = 0.0;
     let theta_z = 0.0;
 
-    color = [1.0,0.0,0.0];
+    const objData = loadOBJFromTag("teapot-model");
 
-    const cubeData = loadOBJFromTag("cube-model");
-
-    let cubeVertices = new Float32Array(cubeData.positions);
-    let cubeNormals = new Float32Array(cubeData.normals);
-    let cubeIndices = new Uint16Array(cubeData.indices)
+    let objVertices = new Float32Array(objData.positions);
+    let objNormals = new Float32Array(objData.normals);
+    let objIndices = new Uint16Array(objData.indices)
 
     gl.bindBuffer(gl.ARRAY_BUFFER, VertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, cubeVertices, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, objVertices, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, NormalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, cubeNormals, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, objNormals, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, IndexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, cubeIndices, gl.STATIC_DRAW);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, objIndices, gl.STATIC_DRAW);
 
-    function drawCube(){
+    function drawObj(){
       gl.enableVertexAttribArray(positionLocation);
       gl.bindBuffer(gl.ARRAY_BUFFER, VertexBuffer);
       gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
@@ -269,14 +271,9 @@ function main() {
 
       gl.uniformMatrix4fv(modelViewMatrixUniformLocation,false,modelViewMatrix);
       gl.uniformMatrix4fv(inverseTransposeModelViewMatrixUniformLocation,false,inverseTransposeModelViewMatrix);
-      gl.uniformMatrix4fv(viewingMatrixUniformLocation,false,viewingMatrix);
       gl.uniformMatrix4fv(projectionMatrixUniformLocation,false,projectionMatrix);
 
-      gl.uniform3fv(colorUniformLocation, new Float32Array(color));
-      gl.uniform3fv(viewPositionUniformLocation, new Float32Array(P0));
-      gl.uniform3fv(lightPositionUniformLocation, new Float32Array([2.0,2.0,2.0]));
-
-      gl.drawElements(gl.TRIANGLES, cubeIndices.length, gl.UNSIGNED_SHORT, 0);
+      gl.drawElements(gl.TRIANGLES, objIndices.length, gl.UNSIGNED_SHORT, 0);
     }
 
     function drawScene(){
@@ -291,7 +288,7 @@ function main() {
 
       gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
       
-      drawCube();
+      drawObj();
 
       requestAnimationFrame(drawScene);
     }
